@@ -66,7 +66,19 @@ SELECT json_build_object(
   'type',       'Feature',
   'id',         AssetCode,
   'geometry',   ST_AsGeoJSON(coordinates)::json,
-  'properties', json_build_object('propertyname', propertyname, 'streetname', streetname)
+  'properties', json_build_object(
+    'organisation', organisation,
+    'organisationlabel', organisationlabel,
+    'uprn', uprn,
+    'assetcode', assetcode,
+    'propertyname', propertyname,
+    'streetname', streetname,
+    'posttown', posttown,
+    'postcode', postcode,
+    'tenuretype', tenuretype,
+    'tenuredetail', tenuredetail,
+    'holdingtype', holdingtype
+  )
 ) AS feature
 FROM (SELECT * FROM land_and_assets) row) features;"
 
