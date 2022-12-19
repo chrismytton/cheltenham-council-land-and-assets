@@ -42,21 +42,19 @@ csv.each do |row|
     next
   end
 
-  # Prepared statement
   sql = "INSERT INTO land_and_assets (Organisation, OrganisationLabel, UPRN, AssetCode, PropertyName, StreetName, PostTown, PostCode, GeoX, GeoY, TenureType, TenureDetail, HoldingType) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)"
-
-  warn "Inserting row #{row["AssetCode"]}"
 
   begin
     # Insert the row into the table
     conn.exec(sql, row.values_at("Organisation", "OrganisationLabel", "UPRN", "AssetCode", "PropertyName", "StreetName", "PostTown", "PostCode", "GeoX", "GeoY", "TenureType", "TenureDetail", "HoldingType"))
+    warn "Row #{row["AssetCode"]} inserted"
   rescue PG::UniqueViolation
     # If the row already exists, skip it
     warn "Row #{row["AssetCode"]} already exists"
   end
 end
 
-# Update the coordinates_wgs84 column
+# Update the coordinates column
 conn.exec("UPDATE land_and_assets SET coordinates = ST_Transform(ST_SetSRID(ST_MakePoint(GeoX, GeoY), 27700), 4326)")
 
 sql = "SELECT json_build_object(
