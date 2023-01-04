@@ -37,3 +37,6 @@ SELECT AssetCode as id,
   ) as geom
 
 from local_authority_land_and_assets_2021
+
+-- Only include rows where we have a valid geometry.
+WHERE GeoX != '' AND GeoY != ''
