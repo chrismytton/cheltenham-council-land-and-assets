@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -e
+
+sql_file="extract_csv_to_ogr.sql"
+output_file="cheltenham_council_land_and_assets_2021"
+source_csv="local_authority_land_and_assets_2021.csv"
+new_layer_name="land_and_assets"
+
+ogr2ogr -dialect SQLite -sql @"${sql_file}" "${output_file}.geojson" "${source_csv}" -nln "${new_layer_name}"
