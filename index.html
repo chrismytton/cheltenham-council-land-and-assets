@@ -55,7 +55,7 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
   <script>
 
     async function getGeoJSON() {
-      const response = await fetch('/cheltenham_council_land_and_assets_2021.geojson');
+      const response = await fetch('cheltenham_council_land_and_assets_2021.geojson');
       const data = await response.json();
       return data;
     }
