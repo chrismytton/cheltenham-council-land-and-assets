@@ -137,6 +137,11 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
       map.on('moveend', function () {
         const center = map.getCenter();
         const zoom = map.getZoom();
+
+        // Round to 4 decimal places
+        center.lat = Math.round(center.lat * 10000) / 10000;
+        center.lng = Math.round(center.lng * 10000) / 10000;
+
         window.location.hash = `#${zoom}/${center.lat}/${center.lng}`;
       });
     }
