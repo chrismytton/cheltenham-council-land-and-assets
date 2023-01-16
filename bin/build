@@ -8,3 +8,4 @@ source_csv="local_authority_land_and_assets_2021.csv"
 new_layer_name="land_and_assets"
 
 ogr2ogr -dialect SQLite -sql @"${sql_file}" "${output_file}.geojson" "${source_csv}" -nln "${new_layer_name}"
+ogr2ogr -dialect SQLite -sql @"${sql_file}" "${output_file}.sqlite" "${source_csv}" -nln "${new_layer_name}" -dsco SPATIALITE=YES
