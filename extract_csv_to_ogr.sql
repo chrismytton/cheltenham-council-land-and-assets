@@ -23,7 +23,8 @@ SELECT AssetCode AS id,
   ) AS postcode,
 
   -- Clean up and combine the tenure columns.
-  REPLACE(TenureType, CAST(X'a0' AS TEXT), '') || ' - ' || TRIM(TenureDetail) as tenure,
+  REPLACE(TenureType, CAST(X'a0' AS TEXT), '') as tenure,
+  TRIM(TenureDetail) as tenure_detail,
 
   HoldingType AS holding,
 
