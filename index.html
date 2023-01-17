@@ -97,12 +97,13 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
         position: 'bottomright',
         prefix: false,
       }).addAttribution(
-        'Made by <a href="https://www.chrismytton.com">Chris Mytton</a> (<a href="https://github.com/chrismytton/cheltenham-council-land-and-assets">GitHub repo</a>) | ' +
-        'Data from <a href="https://www.cheltenham.gov.uk/info/16/open_data/1190/local_authority_land_and_assets">Cheltenham Council</a>'
+        'Made by <a href="https://www.chrismytton.com" target="_blank">Chris Mytton</a> (<a href="https://github.com/chrismytton/cheltenham-council-land-and-assets" target="_blank">GitHub repo</a>) | ' +
+        'Contains public sector information from <a href="https://www.cheltenham.gov.uk/info/16/open_data/1190/local_authority_land_and_assets" target="_blank">Cheltenham Council</a> ' +
+        'licensed under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank">Open Government Licence v3.0</a>'
       ).addTo(map);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
       }).addTo(map);
 
       var markerClusterGroup = L.markerClusterGroup({
