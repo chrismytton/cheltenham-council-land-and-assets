@@ -12,7 +12,7 @@ Check out the [map showing all land and assets](https://www.chrismytton.com/chel
 
 ### Datasette
 
-You can also [explore the data using Datasette Lite](https://lite.datasette.io/?url=https://github.com/chrismytton/cheltenham-council-land-and-assets/blob/main/cheltenham_council_land_and_assets_2021.sqlite#/cheltenham_council_land_and_assets_2021/land_and_assets), which allows you to query the data using SQL.
+You can also [explore the data using Datasette Lite](https://lite.datasette.io/?url=https://github.com/chrismytton/cheltenham-council-land-and-assets/blob/bdf8976e4ba25a6a35174e0597ab3723c47682eb/cheltenham_council_land_and_assets_2021.sqlite#/cheltenham_council_land_and_assets_2021/land_and_assets), which allows you to query the data using SQL.
 
 ## Repository structure
 
