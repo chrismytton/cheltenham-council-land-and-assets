@@ -13,6 +13,7 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css" type="text/css">
   <style>
     body {
       margin: 0;
@@ -50,6 +51,7 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
 
   <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js"></script>
   <script>
 
     async function getGeoJSON() {
@@ -57,6 +59,14 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
       const data = await response.json();
       return data;
     }
+
+    function inIframe () {
+      try {
+          return window.self !== window.top;
+      } catch (e) {
+          return true;
+      }
+  }
 
     async function main() {
       // Initialize the map.
@@ -73,6 +83,11 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
         ],
         attributionControl: false
       };
+
+      // Enable gesture handling in iframes
+      if (inIframe()) {
+        mapOptions.gestureHandling = true;
+      }
 
       // Restore map position from hash
       if (window.location.hash) {
