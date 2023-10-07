@@ -1,6 +1,7 @@
 import maplibregl from 'maplibre-gl';
 import * as pmtiles from "pmtiles";
 import layers from 'protomaps-themes-base';
+import Spiderfy from '@nazka/map-gl-js-spiderfy';
 
 let protocol = new pmtiles.Protocol();
 maplibregl.addProtocol("pmtiles", protocol.tile);
@@ -12,6 +13,8 @@ function inIframe() {
     return true;
   }
 }
+
+console.log(layers("protomaps", "light"));
 
 async function main() {
   // Initialize the map.
@@ -37,7 +40,7 @@ async function main() {
           type: "geojson",
           data: "cheltenham_council_land_and_assets_2021.geojson",
           cluster: true,
-          clusterMaxZoom: 14,
+          clusterMaxZoom: 18,
           clusterRadius: 50
         }
       },
@@ -54,103 +57,86 @@ async function main() {
 
   // Add the data to the map
   map.on('load', function () {
-    map.addLayer({
-      id: 'clusters',
-      type: 'circle',
-      source: 'cheltenham_council_land_and_assets_2021',
-      filter: ['has', 'point_count'],
-      paint: {
-        'circle-color': [
-          'step',
-          ['get', 'point_count'],
-          '#51bbd6',
-          5,
-          '#f1f075',
-          10,
-          '#f28cb1'
-        ],
-        'circle-radius': [
-          'step',
-          ['get', 'point_count'],
-          20,
-          5,
-          30,
-          10,
-          40
-        ]
-      }
-    });
-    map.addLayer({
-      id: 'cluster-count',
-      type: 'symbol',
-      source: 'cheltenham_council_land_and_assets_2021',
-      filter: ['has', 'point_count'],
-      layout: {
-        'text-field': '{point_count_abbreviated}',
-        'text-font': ['Barlow Regular'],
-        'text-size': 12
-      }
-    });
+    // Get all layers from the protomaps source
+    const layers = map.getStyle().layers.filter(layer => layer.source === 'protomaps');
+    console.log(layers);
 
-    map.addLayer({
-      id: 'unclustered-point',
-      type: 'circle',
-      source: 'cheltenham_council_land_and_assets_2021',
-      filter: ['!', ['has', 'point_count']],
-      paint: {
-        'circle-color': '#11b4da',
-        'circle-radius': 4,
-        'circle-stroke-width': 1,
-        'circle-stroke-color': '#fff'
-      }
-    });
+    // Get source data from protomaps source
+    const source = map.getSource('protomaps');
+    console.log(source);
 
-    map.on('click', 'clusters', function (e) {
-      var features = map.queryRenderedFeatures(e.point, {
-        layers: ['clusters']
-      });
-      var clusterId = features[0].properties.cluster_id;
-      map.getSource('cheltenham_council_land_and_assets_2021').getClusterExpansionZoom(
-        clusterId,
-        function (err, zoom) {
-          if (err) return;
+    map.loadImage(
+      'https://raw.githubusercontent.com/nazka/map-gl-js-spiderfy/dev/demo/img/circle-yellow.png',
+      (error, image) => {
+        if (error) throw error;
+        map.addImage('cluster', image);
 
-          map.easeTo({
-            center: features[0].geometry.coordinates,
-            zoom: zoom
-          });
+        map.addLayer({
+          'id': 'markers',
+          'type': 'symbol', // must be symbol
+          'source': 'cheltenham_council_land_and_assets_2021',
+          'layout': {
+            'icon-image': 'cluster',
+            'icon-allow-overlap': true // recommended
+          }
+        });
+
+        map.addLayer({
+          "id": "counters",
+          "type": "symbol",
+          "source": "cheltenham_council_land_and_assets_2021",
+          "layout": {
+            "text-field": ["get", "point_count"],
+            "text-size": 12,
+            "text-allow-overlap": true,
+            "text-font": ["Roboto Regular"]
+          }
+        });
+
+        function onClickHandler(feature) {
+          const coordinates = feature.geometry.coordinates.slice();
+
+          let popup = '<table>';
+          for (const [key, value] of Object.entries(feature.properties)) {
+            popup += `<tr><td><b>${key}</b></td><td>${value}</td></tr>`;
+          }
+          popup += '</table>';
+
+          new maplibregl.Popup()
+            .setLngLat(coordinates)
+            .setHTML(popup)
+            .addTo(map);
         }
-      );
+
+        map.on('click', 'markers', (e) => {
+          const feature = e.features[0];
+          if (!feature.properties.cluster_id) {
+            onClickHandler(feature);
+          }
+        });
+
+        let pointer = () => { map.getCanvas().style.cursor = 'pointer' }
+        let clearPointer = () => { map.getCanvas().style.cursor = '' }
+
+        map.on('mouseenter', 'markers', pointer);
+        map.on('mouseleave', 'markers', clearPointer);
+
+        const spiderfy = new Spiderfy(map, {
+          onLeafClick: onClickHandler,
+          onLeafHover: (feature) => {
+            if (feature) {
+              pointer();
+            } else {
+              clearPointer();
+            }
+          },
+          minZoomLevel: 18,
+          zoomIncrement: 2,
+          closeOnLeafClick: false
+        }); // create a new spiderfy object
+
+        spiderfy.applyTo('markers'); // apply to a cluster layer
     });
-
-    // When a click event occurs on a feature in
-    // the unclustered-point layer, open a popup at
-    // the location of the feature, with
-    // description HTML from its properties.
-    map.on('click', 'unclustered-point', (e) => {
-      console.log(e.features);
-      const coordinates = e.features[0].geometry.coordinates.slice();
-
-      let popup = '<table>';
-      for (const [key, value] of Object.entries(e.features[0].properties)) {
-        popup += `<tr><td><b>${key}</b></td><td>${value}</td></tr>`;
-      }
-      popup += '</table>';
-
-      new maplibregl.Popup()
-        .setLngLat(coordinates)
-        .setHTML(popup)
-        .addTo(map);
-    });
-
-    let pointer = () => { map.getCanvas().style.cursor = 'pointer' }
-    let clearPointer = () => { map.getCanvas().style.cursor = '' }
-
-    map.on('mouseenter', 'clusters', pointer);
-    map.on('mouseleave', 'clusters', clearPointer);
-
-    map.on('mouseenter', 'unclustered-point', pointer);
-    map.on('mouseleave', 'unclustered-point', clearPointer);
   });
 }
 
