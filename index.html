@@ -8,12 +8,8 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Generic favicon -->
   <title>Cheltenham Council land and assets map</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.2/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css" type="text/css">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.3.1/dist/maplibre-gl.css" />
   <style>
     body {
       margin: 0;
@@ -43,127 +39,22 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
     }
 
   </style>
+  <script async src="https://ga.jspm.io/npm:es-module-shims@1.8.0/dist/es-module-shims.js" crossorigin="anonymous"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "@nazka/map-gl-js-spiderfy": "https://ga.jspm.io/npm:@nazka/map-gl-js-spiderfy@1.1.2/dist/index.js",
+      "maplibre-gl": "https://ga.jspm.io/npm:maplibre-gl@3.3.1/dist/maplibre-gl.js",
+      "pmtiles": "https://ga.jspm.io/npm:pmtiles@2.11.0/dist/index.mjs",
+      "protomaps-themes-base": "https://ga.jspm.io/npm:protomaps-themes-base@2.0.0-alpha.1/dist/index.mjs"
+    }
+  }
+  </script>
+  <script type="module" src="main.js"></script>
 </head>
-
 <body>
 
   <div id="map"></div>
 
-  <script src="https://unpkg.com/leaflet@1.9.2/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-  <script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js"></script>
-  <script>
-
-    async function getGeoJSON() {
-      const response = await fetch('cheltenham_council_land_and_assets_2021.geojson');
-      const data = await response.json();
-      return data;
-    }
-
-    function inIframe () {
-      try {
-          return window.self !== window.top;
-      } catch (e) {
-          return true;
-      }
-  }
-
-    async function main() {
-      // Initialize the map.
-      const mapOptions = {
-        minZoom: 12,
-        center: {
-          lat: 51.8986,
-          lng: -2.0862
-        },
-        zoom: 12,
-        maxBounds: [
-          [51.02, -2.4], // South West
-          [52.11, -1.8] // North East
-        ],
-        attributionControl: false
-      };
-
-      // Enable gesture handling in iframes
-      if (inIframe()) {
-        mapOptions.gestureHandling = true;
-      }
-
-      // Restore map position from hash
-      if (window.location.hash) {
-        const hash = window.location.hash.substring(1);
-        const parts = hash.split('/');
-        const zoom = parseInt(parts[0]);
-        const lat = parseFloat(parts[1]);
-        const lng = parseFloat(parts[2]);
-        window.location.hash = `#${zoom}/${lat}/${lng}`;
-
-        mapOptions.center = {
-          lat: lat,
-          lng: lng
-        };
-        mapOptions.zoom = zoom;
-      }
-
-      const map = L.map('map', mapOptions);
-
-      // Add attribution control
-      L.control.attribution({
-        position: 'bottomright',
-        prefix: false,
-      }).addAttribution(
-        'Made by <a href="https://www.chrismytton.com" target="_blank">Chris Mytton</a> (<a href="https://github.com/chrismytton/cheltenham-council-land-and-assets" target="_blank">GitHub repo</a>) | ' +
-        'Contains public sector information from <a href="https://www.cheltenham.gov.uk/info/16/open_data/1190/local_authority_land_and_assets" target="_blank">Cheltenham Council</a> ' +
-        'licensed under the <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/" target="_blank">Open Government Licence v3.0</a>'
-      ).addTo(map);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
-      }).addTo(map);
-
-      var markerClusterGroup = L.markerClusterGroup({
-        maxClusterRadius: 20,
-        showCoverageOnHover: false,
-      });
-      map.addLayer(markerClusterGroup);
-
-      const data = await getGeoJSON();
-
-      markerClusterGroup.addLayer(L.geoJSON(data, {
-        style: {
-          color: '#ff0000',
-          weight: 2,
-          opacity: 0.5
-        },
-        pointToLayer: function (feature, latlng) {
-          var marker = L.marker(latlng);
-          let popup = '<table>';
-          for (const [key, value] of Object.entries(feature.properties)) {
-            popup += `<tr><td><b>${key}</b></td><td>${value}</td></tr>`;
-          }
-          popup += '</table>';
-          marker.bindPopup(popup);
-          return marker;
-        }
-      }));
-
-      // Update hash when map moves
-      map.on('moveend', function () {
-        const center = map.getCenter();
-        const zoom = map.getZoom();
-
-        // Round to 4 decimal places
-        center.lat = Math.round(center.lat * 10000) / 10000;
-        center.lng = Math.round(center.lng * 10000) / 10000;
-
-        window.location.hash = `#${zoom}/${center.lat}/${center.lng}`;
-      });
-    }
-
-    main();
-
-  </script>
-
 </body>
-
 </html>
