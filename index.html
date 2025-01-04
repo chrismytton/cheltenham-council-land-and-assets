@@ -42,6 +42,14 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
       background-color: #f2f2f2;
     }
 
+    /* Style the layer control */
+    .leaflet-control-layers {
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    }
+
   </style>
 </head>
 
@@ -54,8 +62,8 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
   <script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js"></script>
   <script>
 
-    async function getGeoJSON() {
-      const response = await fetch('cheltenham_council_land_and_assets_2021.geojson');
+    async function getGeoJSON(year) {
+      const response = await fetch(`cheltenham_council_land_and_assets_${year}.geojson`);
       const data = await response.json();
       return data;
     }
@@ -66,7 +74,35 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
       } catch (e) {
           return true;
       }
-  }
+    }
+
+    function createMarkerClusterGroup(data, year) {
+      const markerClusterGroup = L.markerClusterGroup({
+        maxClusterRadius: 20,
+        showCoverageOnHover: false,
+      });
+
+      markerClusterGroup.addLayer(L.geoJSON(data, {
+        style: {
+          color: '#ff0000',
+          weight: 2,
+          opacity: 0.5
+        },
+        pointToLayer: function (feature, latlng) {
+          var marker = L.marker(latlng);
+          let popup = '<table>';
+          popup += `<tr><td colspan="2"><b>Year: ${year}</b></td></tr>`;
+          for (const [key, value] of Object.entries(feature.properties)) {
+            popup += `<tr><td><b>${key}</b></td><td>${value}</td></tr>`;
+          }
+          popup += '</table>';
+          marker.bindPopup(popup);
+          return marker;
+        }
+      }));
+
+      return markerClusterGroup;
+    }
 
     async function main() {
       // Initialize the map.
@@ -121,31 +157,29 @@ Data from Cheltenham Council: https://www.cheltenham.gov.uk/info/16/open_data/11
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
       }).addTo(map);
 
-      var markerClusterGroup = L.markerClusterGroup({
-        maxClusterRadius: 20,
-        showCoverageOnHover: false,
-      });
-      map.addLayer(markerClusterGroup);
+      // Create layer groups for each year
+      const years = [2021, 2023];
+      const layers = {};
 
-      const data = await getGeoJSON();
-
-      markerClusterGroup.addLayer(L.geoJSON(data, {
-        style: {
-          color: '#ff0000',
-          weight: 2,
-          opacity: 0.5
-        },
-        pointToLayer: function (feature, latlng) {
-          var marker = L.marker(latlng);
-          let popup = '<table>';
-          for (const [key, value] of Object.entries(feature.properties)) {
-            popup += `<tr><td><b>${key}</b></td><td>${value}</td></tr>`;
-          }
-          popup += '</table>';
-          marker.bindPopup(popup);
-          return marker;
+      for (const year of years) {
+        try {
+          const data = await getGeoJSON(year);
+          layers[`${year} Data`] = createMarkerClusterGroup(data, year);
+        } catch (error) {
+          console.warn(`Failed to load data for ${year}:`, error);
         }
-      }));
+      }
+
+      // Add the 2021 layer by default if available
+      if (layers['2021 Data']) {
+        layers['2021 Data'].addTo(map);
+      }
+
+      // Add layer control with radio buttons (using first argument instead of second)
+      L.control.layers(layers, null, {
+        position: 'topright',
+        collapsed: false
+      }).addTo(map);
 
       // Update hash when map moves
       map.on('moveend', function () {
