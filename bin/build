@@ -2,10 +2,31 @@
 
 set -e
 
-sql_file="extract_csv_to_ogr.sql"
-output_file="cheltenham_council_land_and_assets_2021"
-source_csv="local_authority_land_and_assets_2021.csv"
+# Check if year argument is provided
+if [ -z "$1" ]; then
+    echo "Usage: $0 <year>"
+    echo "Example: $0 2021"
+    exit 1
+fi
+
+YEAR=$1
+sql_file="extract_csv_to_ogr_${YEAR}.sql"
+output_file="cheltenham_council_land_and_assets_${YEAR}"
+source_csv="local_authority_land_and_assets_${YEAR}.csv"
 new_layer_name="land_and_assets"
 
+# Check if source CSV exists
+if [ ! -f "${source_csv}" ]; then
+    echo "Error: Source CSV file ${source_csv} not found"
+    exit 1
+fi
+
+# Check if SQL file exists
+if [ ! -f "${sql_file}" ]; then
+    echo "Error: SQL file ${sql_file} not found"
+    exit 1
+fi
+
+# Generate GeoJSON and SQLite outputs
 ogr2ogr -dialect SQLite -sql @"${sql_file}" "${output_file}.geojson" "${source_csv}" -nln "${new_layer_name}"
 ogr2ogr -dialect SQLite -sql @"${sql_file}" "${output_file}.sqlite" "${source_csv}" -nln "${new_layer_name}"
